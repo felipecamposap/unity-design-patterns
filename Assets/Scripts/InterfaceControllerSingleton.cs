@@ -7,15 +7,19 @@ using UnityEngine.UI;
 public class InterfaceController : MonoBehaviour
 {
     public static InterfaceController ic;
-    private TMP_Text level;
     public string Level
     {
         get { return level.text; }
         set { level.text = value; }
     }
-    private TMP_Text hp;
-    public TMP_Asset playerMode;
-    public GameObject gameOverPanel;
+#nullable enable
+    private TMP_Text? level;
+
+    private TMP_Text? hp;
+
+    public TMP_Asset? playerMode;
+    public GameObject? gameOverPanel;
+#nullable disable
 
     void Awake()
     {
@@ -26,7 +30,7 @@ public class InterfaceController : MonoBehaviour
 
         DontDestroyOnLoad(gameObject);
 
-        gameOverPanel.SetActive(false);
+        //gameOverPanel.SetActive(false);
     }
 
 }
