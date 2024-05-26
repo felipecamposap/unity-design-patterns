@@ -1,9 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class Player : MonoBehaviour
 {
@@ -11,36 +7,41 @@ public class Player : MonoBehaviour
     private Vector2 initPos;
     private GameController gc;
     private InterfaceController ic;
-    private Rigidbody2D rb;
-    private TrailRenderer tr;
-    float initTrTime;
+    public Rigidbody2D rb;
+    public TrailRenderer tr;
+    public SpriteRenderer sr;
+    private float initTrTime;
+    public float speed;
+    private IPlayerState state;
 
-#nullable enable
-
-    public ScriptableObject? playerStats;
-
-#nullable disable
-    // Start is called before the first frame update
-    void Awake()
+    private void Start()
     {
         initPos = transform.position;
         ic = InterfaceController.ic;
         gc = GameController.gc;
         rb = GetComponent<Rigidbody2D>();
         tr = GetComponent<TrailRenderer>();
+        sr = GetComponent<SpriteRenderer>();
+
+        state = new DefaultState();
+        state.Enter(this);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        rb.AddForce(new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")) * Time.deltaTime * 100);
+        rb.AddForce(new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")) * (Time.deltaTime * speed));
+
         if (Input.GetKeyDown(KeyCode.R))
         {
             Respawn();
         }
+
+        if (!Input.GetKeyDown(KeyCode.Space)) return;
+        state.Next(ref state);
+        state.Enter(this);
     }
 
-    void OnCollisionEnter2D(Collision2D col)
+    private void OnCollisionEnter2D(Collision2D col)
     {
         if (col.collider.CompareTag("Respawn"))
         {
@@ -48,17 +49,29 @@ public class Player : MonoBehaviour
         }
     }
 
-    void Respawn()
+    private void OnTriggerEnter2D(Collider2D col)
+    {
+        if (col.CompareTag("Finish"))
+        {
+            gc.NextLevel();
+        }
+    }
+
+    // ReSharper disable Unity.PerformanceAnalysis
+    private void Respawn()
     {
         initTrTime = tr.time;
         tr.time = -1;
+        rb.isKinematic = true;
         rb.MovePosition(initPos);
         rb.velocity = Vector2.zero;
-        Invoke("ResetTrails", 0.1f);
+        Invoke(nameof(ResetComponents), 0.1f);
+        GameController.gc.ResetDoormen();
     }
 
-    void ResetTrails()
+    private void ResetComponents()
     {
+        rb.isKinematic = false;
         tr.time = initTrTime;
     }
 }

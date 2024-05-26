@@ -21,7 +21,7 @@ public class InterfaceController : MonoBehaviour
     public GameObject? gameOverPanel;
 #nullable disable
 
-    void Awake()
+    private void Awake()
     {
         if (ic == null)
             ic = this;
